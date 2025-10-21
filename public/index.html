@@ -1,2 +1,55 @@
-git add public/index.html
-git commit -m "Add index.html frontend for BharatPe collect demo"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BharatPe Collect Demo</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f6f8;padding:20px;display:flex;justify-content:center;align-items:center;height:100vh;}
+.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);width:100%;max-width:400px;}
+input,button{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ddd;}
+button{background:#2e7d32;color:#fff;border:none;font-weight:700;cursor:pointer;}
+.note{font-size:13px;color:#666;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="card">
+<h3>Request Payment via BharatPe</h3>
+<label>Amount (₹)</label>
+<input id="amount" value="60">
+<label>Note</label>
+<input id="note" placeholder="Order #123">
+<button id="reqBtn">Send Payment Request</button>
+<div id="output" class="note"></div>
+</div>
+
+<script>
+document.getElementById('reqBtn').addEventListener('click', async () => {
+    const amount = document.getElementById('amount').value.trim();
+    const note = document.getElementById('note').value.trim();
+    const out = document.getElementById('output');
+    out.textContent = 'Sending request...';
+
+    try {
+        const resp = await fetch('/create-collect', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ amount, note })
+        });
+        const data = await resp.json();
+        console.log(data);
+        if(data.deep_link){
+            out.innerHTML = 'Payment request sent. <a href="'+data.deep_link+'" target="_blank">Open UPI app</a>';
+        } else if(data.payment_link){
+            out.innerHTML = 'Payment link: <a href="'+data.payment_link+'" target="_blank">Open link</a>';
+        } else {
+            out.innerText = 'Response: ' + JSON.stringify(data);
+        }
+    } catch(err){
+        console.error(err);
+        out.textContent = 'Error: ' + err.message;
+    }
+});
+</script>
+</body>
+</html>
